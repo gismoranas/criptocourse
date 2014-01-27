@@ -4,6 +4,9 @@ import collections
 import itertools
 import sys
 
+from collections import Counter, defaultdict
+from operator import itemgetter
+
 msg = ['315c4eeaa8b5f8aaf9174145bf43e1784b8fa00dc71d885a804e5ee9fa40b16349c146fb778cdf2d3aff021dfff5b403b510d0d0455468aeb98622b137dae857553ccd8883a7bc37520e06e515d22c954eba5025b8cc57ee59418ce7dc6bc41556bdb36bbca3e8774301fbcaa3b83b220809560987815f65286764703de0f3d524400a19b159610b11ef3e', 
   '234c02ecbbfbafa3ed18510abd11fa724fcda2018a1a8342cf064bbde548b12b07df44ba7191d9606ef4081ffde5ad46a5069d9f7f543bedb9c861bf29c7e205132eda9382b0bc2c5c4b45f919cf3a9f1cb74151f6d551f4480c82b2cb24cc5b028aa76eb7b4ab24171ab3cdadb8356f',
   '32510ba9a7b2bba9b8005d43a304b5714cc0bb0c8a34884dd91304b8ad40b62b07df44ba6e9d8a2368e51d04e0e7b207b70b9b8261112bacb6c866a232dfe257527dc29398f5f3251a0d47e503c66e935de81230b59b7afb5f41afa8d661cb',
@@ -22,6 +25,9 @@ def str_xor(a, b):
     else:
         return "".join([chr(ord(x) ^ ord(y)) for (x, y) in zip(a, b[:len(a)])])
 
+def int_to_char(number):
+  return str(unichr(number))
+
 def random(size=16):
     return open("/dev/urandom").read(size)
 
@@ -38,7 +44,7 @@ def find_space_indices_for_strings(string1, string2):
   ascii_code_xor = [int(hex_xor[j:j+2], 16) for j in range(0, len(hex_xor), 2)]  
   return [ind for ind, num in enumerate(ascii_code_xor) if (num >= 65 and num <= 90) or (num >= 97 and num <=122)]
 
-def find_double_space_indices_for_strings(string1, string2):
+def find_same_letter_indices_for_strings(string1, string2):
   hex_xor = xor_hexed(string1, string2).encode('hex') 
   ascii_code_xor = [int(hex_xor[j:j+2], 16) for j in range(0, len(hex_xor), 2)]  
   return [ind for ind, num in enumerate(ascii_code_xor) if (num == 0)]
@@ -48,6 +54,11 @@ def find_space_indices(index):
   for i in range(0, 10):
     space_indices.extend(find_space_indices_for_strings(msg[index], msg[i]))
   return list(set(space_indices))  
+
+def find_space_indices_and_chars(string1, string2):
+  hex_xor = xor_hexed(string1, string2).encode('hex') 
+  ascii_code_xor = [int(hex_xor[j:j+2], 16) for j in range(0, len(hex_xor), 2)]  
+  return {ind : int_to_char(num) for ind, num in enumerate(ascii_code_xor) if (num >= 65 and num <= 90) or (num >= 97 and num <=122)}
 
 def find_space_indices_strict(index):
   space_xors = []
@@ -90,12 +101,33 @@ def print_xor_ascii():
     string = hex_string.decode('hex')
     print hex_string, string, xor_hexed(hex_string, '20')
 
+def easy_decrypt(chosen_index):
+  cache = []
+  chosen_msg = msg[chosen_index]
+  for i in range(11):
+    if i == chosen_index:
+      continue
+    cache.append(find_space_indices_and_chars(chosen_msg, msg[i]))
+    #print cache[-1]
+  index_to_letters = defaultdict(list)
+  for cache_element in cache:
+    for key in cache_element:
+      index_to_letters[key].append(cache_element[key])
+  plaintext = ['*']*(len(chosen_msg)/2)
+  for index in index_to_letters:
+    counter = Counter(index_to_letters[index]).most_common()
+    max_length = max(counter, key = itemgetter(1))[1]
+    if max_length > 2:
+      most_common = [ a[0] for a in counter if a[1] == max_length ]
+      #print index, most_common, max_length
+      if len(most_common) == 1:
+        plaintext[index] = most_common[0]
+  print ''.join(plaintext)
+
 def main():
-  for i in range(0,11):
-    print find_space_indices_for_strings(msg[0], msg[i])
-  print 'space-space'
-  for i in range(0,11):
-    print find_double_space_indices_for_strings(msg[0], msg[i])
+  for i in range(11):
+    easy_decrypt(i)
+  
   #decrypt()
   #key = str_xor('The sXXue', msg[10].decode('hex')).encode('hex')
   #for i in range(0,11):
