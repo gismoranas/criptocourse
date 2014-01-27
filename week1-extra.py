@@ -2,6 +2,7 @@
 
 import collections
 import itertools
+import re
 import sys
 
 from collections import Counter, defaultdict
@@ -122,12 +123,30 @@ def easy_decrypt(chosen_index):
       #print index, most_common, max_length
       if len(most_common) == 1:
         plaintext[index] = most_common[0]
-  print ''.join(plaintext)
+  plaintext = ''.join(plaintext)
+  key = str_xor(plaintext, chosen_msg.decode('hex')).encode('hex')
+  print plaintext
+  key_as_string = ''
+  for i in range(len(plaintext)):
+    if plaintext[i] == '*':
+      key_as_string += '*'
+    else:
+      key_as_string += key[i*2:i*2+2]
+  return key_as_string
 
 def main():
+  keys = []
+  index_to_hex = defaultdict(list)
   for i in range(11):
-    easy_decrypt(i)
-  
+    key = easy_decrypt(i)
+    split_key = re.findall('\*|[0-9a-f]{2}', key)
+    for j in range(len(split_key)):
+      if split_key[j] != '*':
+        index_to_hex[j].append(split_key[j])
+  for index in index_to_hex:
+    print index, index_to_hex[index]
+
+    
   #decrypt()
   #key = str_xor('The sXXue', msg[10].decode('hex')).encode('hex')
   #for i in range(0,11):
