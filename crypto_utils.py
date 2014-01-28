@@ -1,10 +1,12 @@
 def ascii_int_to_char(number):
   return str(unichr(number))
 
-def find_space_indices_and_chars(hex_1, hex_2):
-  hex_xor = xor_hexes(hex_1, hex_2).encode('hex') 
-  ascii_code_xor = [int(hex_xor[j:j+2], 16) for j in range(0, len(hex_xor), 2)]  
-  return {ind : ascii_int_to_char(num) for ind, num in enumerate(ascii_code_xor) if is_ascii_int(num)}
+def find_ascii_chars_in_hex(hex_num):
+  ascii_ints = hex_to_int(hex_num)
+  return {ind : ascii_int_to_char(num) for ind, num in enumerate(ascii_ints) if is_ascii_int(num)}
+
+def hex_to_int(hex_string):
+  return [ int(hex_string[j:j+2], 16) for j in range(0, len(hex_string), 2) ]  
 
 def is_ascii_int(number):
   return (number >= 65 and number <= 90) or (number >= 97 and number <=122)

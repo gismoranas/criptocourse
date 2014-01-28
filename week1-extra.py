@@ -21,25 +21,32 @@ def read_cyphertexts():
   cyphertexts_file.close()
   return [ cyphertext.rstrip() for cyphertext in cyphertexts ]  
 
-def easy_decrypt(index, cyphertexts):
-  cache = []
-  chosen_cyphertext = cyphertexts[index]
-  for i in range(11):
+def xor_hexes_and_find_ascii_chars(index, cyphertexts):
+  index_to_ascii_char_list = []
+  cyphertext = cyphertexts[index]
+  for i in range(len(cyphertexts)):
     if i == index:
       continue
-    cache.append(find_space_indices_and_chars(chosen_cyphertext, cyphertexts[i]))
+    xored_hexes = xor_hexes(cyphertext, cyphertexts[i]).encode('hex')
+    index_to_ascii_char_list.append(find_ascii_chars_in_hex(xored_hexes))
+  return index_to_ascii_char_list
+
+def easy_decrypt(index, cyphertexts):
+  index_to_ascii_char_list = xor_hexes_and_find_ascii_chars(index, cyphertexts)
+      
+  cyphertext = cyphertexts[index]
   index_to_letters = defaultdict(list)
-  for cache_element in cache:
+  for cache_element in index_to_ascii_char_list:
     for key in cache_element:
       index_to_letters[key].append(cache_element[key])
-  plaintext = ['*']*(len(chosen_cyphertext)/2)
+  plaintext = ['*']*(len(cyphertext)/2)
   for i, letters in index_to_letters.iteritems():    
     most_common = find_most_common_entries(letters)
     if most_common[1] > 2 and len(most_common[0]) == 1:
         plaintext[i] = most_common[0][0]
 
   plaintext = ''.join(plaintext)
-  key = xor_string_hex(plaintext, chosen_cyphertext).encode('hex')
+  key = xor_string_hex(plaintext, cyphertext).encode('hex')
   key_as_string = ''
   for i in range(len(plaintext)):
     if plaintext[i] == '*':
