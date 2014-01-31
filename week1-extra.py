@@ -13,7 +13,6 @@ from crypto_utils import *
 from xor_utils import * 
 
 #TODO move ciphertext to other file and read it, so it can be accidentally modified
-#TODO make some order
 
 def read_ciphertexts():
   ciphertexts_file = open('ciphertexts.txt', 'r')
