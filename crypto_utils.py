@@ -16,6 +16,9 @@ def hex_to_ascii_char(hex_string):
 def hex_to_int(hex_string):
   return [ int(hex_string[j:j+2], 16) for j in range(0, len(hex_string), 2) ]  
 
+def hex_to_string(hex_string):
+  return ''.join(hex_to_ascii_char(hex_string))
+
 def is_ascii_hex_letter(hex_number):
   return is_ascii_int_letter(int(hex_number, 16))
 
